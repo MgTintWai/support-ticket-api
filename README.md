@@ -15,7 +15,7 @@ This API powers a Support Ticket Portal where:
 - **Client users** create and track tickets for their organization, add public comments, and view SLA status.
 - **Support agents** manage tickets across all organizations, assign work, update status/priority, and maintain internal notes that are never exposed to clients.
 
-The backend follows a layered architecture aligned with the repository pattern used in the translation-service project:
+The backend follows a layered architecture with the repository pattern:
 
 ```
 HTTP Request
@@ -120,7 +120,7 @@ docs/postman/
 tests/Feature/Api/V1/
 ```
 
-Interfaces live in `app/Contracts/` (not nested under `Repositories/`) to match the translation-service convention and Laravel's own `Contracts` namespace pattern.
+Interfaces live in `app/Contracts/`, separate from Eloquent implementations in `app/Repositories/`.
 
 ---
 
@@ -442,7 +442,7 @@ Import `docs/postman/Support-Ticket-Portal.postman_collection.json`.
 |----------|-----------|
 | Stored `sla_deadline_at` | Efficient overdue filtering without per-row runtime computation |
 | Silent stripping of `is_internal` for clients | Prevents leaking internal-note capability |
-| `Contracts/` instead of `Repositories/Interfaces/` | Matches translation-service and Laravel conventions |
+| `Contracts/` for repository interfaces | Clear separation between contracts and implementations |
 | No DTO layer | Form Request `validated()` arrays are sufficient at this scale |
 | SQLite in tests | Fast, zero-config CI-friendly runs |
 | ApiResponse envelope | Consistent client parsing across all endpoints |
@@ -487,38 +487,3 @@ Approximately 4 hours for API architecture, implementation, tests, and documenta
 - Structured logging and APM (Datadog, Sentry).
 - CI pipeline with Pest, Pint, and static analysis.
 - Docker Compose for local/production parity.
-
----
-
-## Assessment Compliance
-
-This project was built against the Senior Laravel Engineer technical assessment brief. Summary:
-
-| Requirement | Status |
-|-------------|--------|
-| Laravel (latest stable) | ✅ Laravel 13 |
-| MySQL/MariaDB | ✅ |
-| REST API | ✅ |
-| Repository Pattern | ✅ Contracts + Repositories + DI |
-| Conventional MVC + layered architecture | ✅ |
-| translation-service architectural alignment | ✅ Contracts/, flat Repositories/, Services, Policies |
-| API versioning `/api/v1/` | ✅ |
-| Standardized API responses | ✅ `ApiResponse` helper |
-| Sanctum authentication | ✅ |
-| Policies for authorization | ✅ Ticket, Organization, Comment |
-| Query-level scoping | ✅ `TicketRepository`, `CommentRepository` |
-| Form Request validation | ✅ Reusable `TicketRequest`, `OrganizationRequest`, etc. |
-| Input sanitization middleware | ✅ `SanitizeInput` |
-| Rate limiting | ✅ 5/min login, 60/min API |
-| API Resources (no raw models) | ✅ |
-| Domain: orgs, users, tickets, comments, SLA, internal notes | ✅ |
-| SLA logic in Services only | ✅ `SlaService` |
-| Pest tests: auth, SLA, API | ✅ 17 tests |
-| Postman collection | ✅ `docs/postman/` |
-| Professional README | ✅ This document |
-
-**Intentional deviations (documented):**
-
-- Interfaces in `app/Contracts/` rather than `app/Repositories/Interfaces/` — aligned with translation-service refactor.
-- No `Traits/`, `DTOs/`, or `Queries/` folders — removed as over-engineering for this scope; logic consolidated into Services and Repositories.
-- React frontend lives in a separate repository.
